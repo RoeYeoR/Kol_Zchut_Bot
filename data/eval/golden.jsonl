@@ -1,0 +1,9 @@
+{"question": "כמה ימי הודעה מוקדמת מגיעים לעובד במשכורת חודשית עם ותק של שנתיים?", "relevant_doc_ids": ["hodaa_mukdemet"], "expected": "חודש הודעה מוקדמת מלא"}
+{"question": "מה גובה פיצויי הפיטורים עבור כל שנת עבודה?", "relevant_doc_ids": ["pitzuyei_piturim"], "expected": "שכר חודשי אחד לכל שנת עבודה"}
+{"question": "האם עובד שהתפטר יכול בכל זאת לקבל פיצויי פיטורים?", "relevant_doc_ids": ["pitzuyei_piturim"], "expected": "כן, במקרים כמו הרעה מוחשית בתנאים או התפטרות לטיפול בילד"}
+{"question": "מתי מתחילה הזכאות לדמי הבראה?", "relevant_doc_ids": ["dmei_havraa"], "expected": "לאחר שנת עבודה אחת"}
+{"question": "כמה אחוז מהשכר משולם עבור היום השני והשלישי של מחלה?", "relevant_doc_ids": ["dmei_machala"], "expected": "50 אחוז"}
+{"question": "האם משולם שכר עבור יום המחלה הראשון?", "relevant_doc_ids": ["dmei_machala"], "expected": "לא, היום הראשון ללא תשלום"}
+{"question": "כמה שבועות נמשכת תקופת הלידה וההורות המלאה?", "relevant_doc_ids": ["chufsat_leida"], "expected": "כ-26 שבועות"}
+{"question": "האם אפשר לקבל פדיון על ימי חופשה שנתית שלא נוצלו בסיום העבודה?", "relevant_doc_ids": ["chufsha_shnatit"], "expected": "כן, פדיון חופשה"}
+{"question": "מה גובה דמי האבטלה למי שמעולם לא עבד?", "relevant_doc_ids": [], "expected": "לא נמצאה תשובה במאגר הידע"}

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>זכותון — עוזר זכויות</title>
+  <style>
+    :root { --bg:#f6f5f1; --card:#fff; --ink:#1b1b1a; --muted:#6b6a63; --accent:#6d3b4a; --line:#e6e4dd; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", Rubik, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+    .wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
+    h1 { font-size: 28px; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 24px; font-size: 14px; }
+    .ask { display:flex; gap:8px; }
+    input { flex:1; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:15px; background:var(--card); }
+    button { padding:12px 18px; border:0; border-radius:10px; background:var(--accent); color:#fff; font-size:15px; cursor:pointer; }
+    button.ghost { background:transparent; color:var(--accent); border:1px solid var(--line); padding:6px 12px; font-size:13px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin-top:18px; }
+    .answer { white-space: pre-wrap; line-height:1.7; font-size:16px; }
+    .sources { margin-top:14px; border-top:1px solid var(--line); padding-top:12px; }
+    .src { font-size:13px; color:var(--muted); margin:4px 0; }
+    .src a { color:var(--accent); }
+    .pill { display:inline-block; background:#efe9ea; color:var(--accent); border-radius:999px; padding:1px 8px; font-size:12px; margin-inline-start:6px; }
+    .chunk { border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:8px 0; font-size:13px; line-height:1.6; }
+    .score { color:var(--accent); font-weight:600; }
+    .muted { color:var(--muted); }
+    .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media (max-width:640px){ .cols{ grid-template-columns:1fr; } }
+    .spinner { color:var(--muted); font-size:14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>זכותון · עוזר זכויות בעברית</h1>
+    <p class="sub">שאלו על זכויות עובדים ואזרחים. התשובות מבוססות אך ורק על מאגר הידע, עם ציטוט מקורות.</p>
+
+    <div class="ask">
+      <input id="q" placeholder="למשל: כמה ימי הודעה מוקדמת מגיעים לעובד חודשי ותיק?" />
+      <button onclick="ask()">שאל</button>
+    </div>
+    <div style="margin-top:10px">
+      <button class="ghost" onclick="toggleDebug()">🔍 מצב Evaluation (הצגת שליפה)</button>
+    </div>
+
+    <div id="out"></div>
+    <div id="debug"></div>
+  </div>
+
+  <script>
+    let debugOn = false;
+    const el = (id) => document.getElementById(id);
+
+    function toggleDebug() { debugOn = !debugOn; el("debug").innerHTML = debugOn ? "<p class='sub'>מצב Evaluation פעיל — כל שאלה תציג גם את הצ'אנקים שנשלפו והדירוג.</p>" : ""; }
+
+    async function ask() {
+      const q = el("q").value.trim();
+      if (!q) return;
+      el("out").innerHTML = "<div class='card spinner'>מחפש במאגר…</div>";
+      el("debug").innerHTML = debugOn ? "<div class='card spinner'>שולף…</div>" : "";
+
+      const res = await fetch("/ask", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({question:q}) });
+      const data = await res.json();
+
+      let html = `<div class='card'><div class='answer'>${escape(data.answer)}</div>`;
+      if (data.sources && data.sources.length) {
+        html += "<div class='sources'><b>מקורות:</b>";
+        for (const s of data.sources) {
+          const link = s.source_url ? `<a href='${s.source_url}' target='_blank'>${escape(s.title)}</a>` : escape(s.title);
+          const tag = s.reranked ? `<span class='pill'>reranked ${s.rerank_score}</span>` : `<span class='pill'>score ${s.rerank_score}</span>`;
+          html += `<div class='src'>[${s.n}] ${link} ${tag}</div>`;
+        }
+        html += "</div>";
+      }
+      html += "</div>";
+      el("out").innerHTML = html;
+
+      if (debugOn) showDebug(q);
+    }
+
+    async function showDebug(q) {
+      const res = await fetch("/search", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({question:q}) });
+      const d = await res.json();
+      const col = (title, items, key) => {
+        let h = `<div><b>${title}</b>`;
+        items.forEach((c,i) => h += `<div class='chunk'><span class='muted'>${i+1}. ${escape(c.title)}</span> · <span class='score'>${c[key]}</span><br>${escape(c.text.slice(0,160))}…</div>`);
+        return h + "</div>";
+      };
+      el("debug").innerHTML = `<div class='card'><p class='sub'>מצב Evaluation — כך רואים אם תשובה שגויה נובעת מ<b>שליפה</b> או מ<b>ניסוח</b>:</p><div class='cols'>${col("Retrieval (top-K)", d.retrieved, "score")}${col("After rerank (top-N)", d.reranked, "rerank_score")}</div></div>`;
+    }
+
+    function escape(s){ return (s||"").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+    el("q").addEventListener("keydown", e => { if (e.key === "Enter") ask(); });
+  </script>
+</body>
+</html>
