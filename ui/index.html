@@ -5,72 +5,169 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>זכותון — עוזר זכויות</title>
   <style>
-    :root { --bg:#f6f5f1; --card:#fff; --ink:#1b1b1a; --muted:#6b6a63; --accent:#6d3b4a; --accent-soft:#efe9ea; --line:#e6e4dd; }
+    :root {
+      --bg:#f6f5f1; --card:#fff; --ink:#1b1b1a; --muted:#6b6a63;
+      --accent:#6d3b4a; --accent-2:#8a4a5d; --accent-deep:#552e3a; --accent-soft:#efe9ea; --line:#e6e4dd;
+      --shadow:0 1px 2px rgba(40,20,25,.04), 0 6px 20px rgba(40,20,25,.06);
+    }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: "Segoe UI", Rubik, Arial, sans-serif; background:var(--bg); color:var(--ink); }
-    .wrap { max-width: 820px; margin: 0 auto; padding: 28px 20px 120px; }
-    .head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-    h1 { font-size: 26px; margin: 0 0 4px; }
-    .sub { color: var(--muted); margin: 0 0 8px; font-size: 14px; }
-    button { padding:12px 18px; border:0; border-radius:10px; background:var(--accent); color:#fff; font-size:15px; cursor:pointer; }
-    button.ghost { background:transparent; color:var(--accent); border:1px solid var(--line); padding:7px 12px; font-size:13px; }
-    button.ghost.on { background:var(--accent-soft); }
+    html, body { height:100%; }
+    body { margin:0; font-family:"Segoe UI", Rubik, Arial, sans-serif; color:var(--ink);
+           background:radial-gradient(1200px 600px at 85% -10%, #efe7e9 0%, transparent 55%), var(--bg); }
 
-    .thread { display:flex; flex-direction:column; gap:14px; margin:18px 0; }
+    .page { height:100vh; max-width:860px; margin:0 auto; padding:22px 20px; display:flex; flex-direction:column; }
+    header { flex:none; }
+    .head-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .brand { display:flex; align-items:center; gap:13px; }
+    .emblem { width:48px; height:48px; border-radius:14px; flex:none; color:#fff; display:flex; align-items:center; justify-content:center;
+              background:linear-gradient(140deg, var(--accent-2), var(--accent-deep)); box-shadow:var(--shadow); }
+    .emblem svg { width:27px; height:27px; }
+    h1 { font-size:29px; margin:0 0 4px; letter-spacing:-.3px; }
+    .sub { color:var(--muted); margin:0; font-size:15px; line-height:1.55; max-width:560px; }
+    .tools { display:flex; gap:8px; flex-wrap:wrap; }
+
+    button { padding:14px 22px; border:0; border-radius:12px; color:#fff; font-size:16.5px; cursor:pointer;
+             background:linear-gradient(140deg, var(--accent-2), var(--accent)); box-shadow:var(--shadow); transition:filter .15s; }
+    button:hover { filter:brightness(1.05); }
+    button.ghost { background:var(--card); color:var(--accent); border:1px solid var(--line); padding:9px 13px; font-size:13.5px;
+                   display:inline-flex; align-items:center; gap:7px; box-shadow:none; }
+    button.ghost:hover { border-color:var(--accent); }
+    button.ghost.on { background:var(--accent-soft); border-color:var(--accent-soft); }
+    button.ghost svg { width:16px; height:16px; }
+
+    main { flex:1; display:flex; flex-direction:column; min-height:0; }
+    body.empty main { justify-content:center; }
+
+    .thread { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:16px; padding:14px 2px; }
+    body.empty .thread { display:none; }
+
     .msg { max-width:88%; }
-    .msg.user { align-self:flex-start; background:var(--accent); color:#fff; padding:10px 14px; border-radius:14px 14px 14px 4px; font-size:15px; line-height:1.6; }
-    .msg.bot { align-self:stretch; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
-    .answer { white-space: pre-wrap; line-height:1.75; font-size:16px; }
-    .condensed { font-size:12.5px; color:var(--muted); background:var(--accent-soft); border-radius:8px; padding:6px 10px; margin-bottom:10px; }
-    .condensed b { color:var(--accent); }
-    .sources { margin-top:14px; border-top:1px solid var(--line); padding-top:12px; }
-    .src { font-size:13px; color:var(--muted); margin:4px 0; }
-    .src a { color:var(--accent); }
-    .pill { display:inline-block; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:1px 8px; font-size:12px; margin-inline-start:6px; }
+    .msg.user { align-self:flex-start; color:#fff; padding:12px 16px; border-radius:16px 16px 16px 5px; font-size:16.5px; line-height:1.65;
+                background:linear-gradient(140deg, var(--accent-2), var(--accent)); box-shadow:var(--shadow); }
+    .msg.bot { align-self:stretch; border:1px solid var(--line); border-radius:18px; padding:18px 20px 20px;
+               background:linear-gradient(180deg, #ffffff 0%, #fbf9f7 100%); box-shadow:var(--shadow); }
 
-    .debug { display:none; margin-top:14px; border-top:1px dashed var(--line); padding-top:12px; }
+    .bot-head { display:flex; align-items:center; gap:9px; margin-bottom:13px; }
+    .avatar { width:30px; height:30px; border-radius:50%; flex:none; color:#fff; display:flex; align-items:center; justify-content:center;
+              background:linear-gradient(140deg, var(--accent-2), var(--accent-deep)); }
+    .avatar svg { width:17px; height:17px; }
+    .bot-name { font-weight:600; font-size:15px; color:var(--accent); }
+    .bot-tag { margin-inline-start:auto; font-size:12px; color:var(--muted); background:var(--accent-soft); padding:3px 10px; border-radius:999px; }
+
+    .answer { white-space:pre-wrap; line-height:1.85; font-size:18px; }
+    .condensed { font-size:14px; color:var(--muted); border-radius:10px; padding:9px 12px; margin-bottom:13px;
+                 background:linear-gradient(180deg, var(--accent-soft), #f3edee); border:1px solid #e8dfe1; }
+    .condensed b { color:var(--accent); }
+    .sources { margin-top:16px; border-top:1px solid var(--line); padding-top:14px; }
+    .src { font-size:14.5px; color:var(--muted); margin:5px 0; }
+    .src a { color:var(--accent); }
+    .pill { display:inline-block; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:2px 9px; font-size:12.5px; margin-inline-start:6px; }
+
+    .debug { display:none; margin-top:16px; border-top:1px dashed var(--line); padding-top:14px; }
     body.show-debug .debug { display:block; }
-    .debug .cap { color:var(--muted); font-size:12.5px; margin-bottom:8px; }
+    .debug .cap { color:var(--muted); font-size:14px; margin-bottom:10px; }
     .cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     @media (max-width:640px){ .cols{ grid-template-columns:1fr; } }
-    .chunk { border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin:6px 0; font-size:12.5px; line-height:1.55; }
+    .chunk { border:1px solid var(--line); border-radius:10px; padding:9px 12px; margin:7px 0; font-size:13.5px; line-height:1.6;
+             background:linear-gradient(180deg, #ffffff, #faf8f6); }
     .score { color:var(--accent); font-weight:600; }
     .muted { color:var(--muted); }
 
-    .ask { position:fixed; bottom:0; inset-inline:0; background:linear-gradient(transparent, var(--bg) 22%); padding:16px 20px 20px; }
-    .ask-inner { max-width:820px; margin:0 auto; display:flex; gap:8px; }
-    input { flex:1; padding:13px 14px; border:1px solid var(--line); border-radius:10px; font-size:15px; background:var(--card); }
-    .hint { color:var(--muted); font-size:12px; text-align:center; margin-top:8px; }
+    .composer { flex:none; padding-top:14px; }
+    body.empty .composer { padding-top:0; }
+    .empty-title { display:none; }
+    body.empty .empty-title { display:block; text-align:center; font-size:20px; color:var(--ink); margin-bottom:18px; font-weight:600; }
+    .ask-inner { display:flex; gap:10px; max-width:760px; margin:0 auto; }
+    input { flex:1; padding:16px 18px; border:1px solid var(--line); border-radius:13px; font-size:17px; background:var(--card); box-shadow:var(--shadow); }
+    input:focus { outline:none; border-color:var(--accent); }
+    .hint { color:var(--muted); font-size:13px; text-align:center; margin-top:12px; }
+
+    /* --- "searching" animation --- */
+    .loader { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:15.5px; }
+    .loader-text { transition:opacity .2s ease; }
+    .dots { display:inline-flex; gap:5px; }
+    .dots i { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:blink 1.1s infinite ease-in-out; }
+    .dots i:nth-child(2){ animation-delay:.15s; }
+    .dots i:nth-child(3){ animation-delay:.3s; }
+    @keyframes blink { 0%,80%,100%{ transform:translateY(0); opacity:.3; } 40%{ transform:translateY(-5px); opacity:1; } }
+    .msg.bot.loading { position:relative; overflow:hidden; }
+    .msg.bot.loading .avatar { animation:pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(109,59,74,.32);} 50%{ box-shadow:0 0 0 8px rgba(109,59,74,0);} }
+    .msg.bot.loading::after { content:""; position:absolute; inset:0; transform:translateX(-100%);
+      background:linear-gradient(90deg, transparent, rgba(109,59,74,.05), transparent); animation:sweep 1.4s infinite; }
+    @keyframes sweep { 100%{ transform:translateX(100%);} }
+
+    /* --- mobile --- */
+    @media (max-width:560px) {
+      .page { padding:16px 15px; }
+      .head-row { flex-direction:column; align-items:stretch; gap:12px; }
+      .brand { gap:11px; }
+      .emblem { width:42px; height:42px; border-radius:12px; }
+      .emblem svg { width:24px; height:24px; }
+      h1 { font-size:21px; }
+      .sub { font-size:13.5px; line-height:1.5; }
+      .tools { justify-content:flex-start; }
+      button.ghost { padding:8px 12px; font-size:13px; }
+      .msg { max-width:94%; }
+      .answer { font-size:16.5px; line-height:1.8; }
+      .msg.user { font-size:15.5px; }
+      input { font-size:16px; padding:14px 15px; }
+      button { padding:13px 18px; font-size:15.5px; }
+      body.empty .empty-title { font-size:18px; }
+    }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <div class="head">
-      <div>
-        <h1>זכותון · עוזר זכויות בעברית</h1>
-        <p class="sub">שיחה על זכויות עובדים ואזרחים. התשובות מבוססות אך ורק על מאגר הידע, עם ציטוט מקורות — ואפשר לשאול שאלות המשך.</p>
+<body class="empty">
+  <div class="page">
+    <header>
+      <div class="head-row">
+        <div class="brand">
+          <span class="emblem" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+              <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+              <path d="M7 21h10"/><path d="M12 3v18"/>
+              <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+            </svg>
+          </span>
+          <div>
+            <h1>זכותון · דע את זכויותיך</h1>
+            <p class="sub">שיחה על זכויות עובדים ואזרחים — התשובות מבוססות על מקורות מתוך כל-זכות, עם קישור לדף המקור ואפשרות לשאלות המשך.</p>
+          </div>
+        </div>
+        <div class="tools">
+          <button class="ghost" id="dbgBtn" onclick="toggleDebug()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            מצב Evaluation
+          </button>
+          <button class="ghost" onclick="newChat()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M9 10h6"/><path d="M12 7v6"/></svg>
+            שיחה חדשה
+          </button>
+        </div>
       </div>
-    </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap">
-      <button class="ghost" id="dbgBtn" onclick="toggleDebug()">🔍 מצב Evaluation</button>
-      <button class="ghost" onclick="newChat()">✨ שיחה חדשה</button>
-    </div>
+    </header>
 
-    <div class="thread" id="thread"></div>
-  </div>
+    <main>
+      <div class="thread" id="thread"></div>
 
-  <div class="ask">
-    <div class="ask-inner">
-      <input id="q" placeholder="למשל: פוטרתי אחרי 4 שנים — כמה ימי הודעה מוקדמת מגיעים לי?" />
-      <button onclick="ask()">שאל</button>
-    </div>
-    <div class="hint">טיפ: שאל שאלה, ואז שאלת המשך כמו "וכמה פיצויים?" — הזיכרון ישלים את ההקשר.</div>
+      <div class="composer">
+        <div class="empty-title">מה תרצו לדעת? נשמח לעזור</div>
+        <div class="ask-inner">
+          <input id="q" placeholder="למשל: פוטרתי אחרי 4 שנים — כמה ימי הודעה מוקדמת מגיעים לי?" />
+          <button onclick="ask()">שאל</button>
+        </div>
+        <div class="hint">טיפ: שאל שאלה, ואז שאלת המשך כמו "וכמה פיצויים?" — הזיכרון ישלים את ההקשר.</div>
+      </div>
+    </main>
   </div>
 
   <script>
     const el = (id) => document.getElementById(id);
     const thread = el("thread");
     let sessionId = newId();
+
+    const SCALES = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>`;
 
     function newId() {
       try { return crypto.randomUUID(); } catch (e) { return "s-" + Date.now() + "-" + Math.random().toString(16).slice(2); }
@@ -86,6 +183,7 @@
       try { await fetch("/reset", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({session_id: sessionId}) }); } catch(e){}
       sessionId = newId();
       thread.innerHTML = "";
+      document.body.classList.add("empty");
       el("q").focus();
     }
 
@@ -112,9 +210,12 @@
       return h + "</div>";
     }
 
+    function botHead() {
+      return `<div class='bot-head'><span class='avatar'>${SCALES}</span><span class='bot-name'>זכותון</span><span class='bot-tag'>מבוסס מקורות</span></div>`;
+    }
+
     function render(data, typedQuestion) {
-      let h = "";
-      // Transparency: show the standalone query the memory produced, when it differs from what was typed.
+      let h = botHead();
       if (data.search_query && data.search_query.trim() !== typedQuestion.trim()) {
         h += `<div class='condensed'>🔎 <b>חיפשתי לפי:</b> ${esc(data.search_query)} <span class='muted'>(נוסח מחדש מההקשר)</span></div>`;
       }
@@ -134,19 +235,34 @@
       return h;
     }
 
+    // Stages mirror the real pipeline (retrieve -> rerank -> read -> generate), so the wait
+    // doubles as a live explainer of what the system is doing instead of a dead spinner.
+    const STAGES = ["מחפש במאגר הידע…", "מדרג את המקורות הרלוונטיים…", "קורא את המקורות…", "מנסח תשובה מעוגנת עם ציטוטים…"];
+
     async function ask() {
       const q = el("q").value.trim();
       if (!q) return;
       el("q").value = "";
+      document.body.classList.remove("empty");
       addUser(q);
-      const pending = addBot("<span class='muted'>מחפש במאגר…</span>");
+      const pending = addBot(`${botHead()}<div class='loader'><span class='loader-text'>${STAGES[0]}</span><span class='dots'><i></i><i></i><i></i></span></div>`);
+      pending.classList.add("loading");
+      let si = 0;
+      const textEl = pending.querySelector(".loader-text");
+      const timer = setInterval(() => {
+        si = Math.min(si + 1, STAGES.length - 1);
+        if (textEl) { textEl.style.opacity = 0; setTimeout(() => { textEl.textContent = STAGES[si]; textEl.style.opacity = 1; }, 180); }
+      }, 1250);
+      const stop = () => { clearInterval(timer); pending.classList.remove("loading"); };
       try {
         const res = await fetch("/ask", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({question:q, session_id: sessionId}) });
         const data = await res.json();
+        stop();
         pending.innerHTML = render(data, q);
         pending.scrollIntoView({behavior:"smooth", block:"end"});
       } catch (e) {
-        pending.innerHTML = "<span class='muted'>שגיאה בשליפת התשובה. נסה שוב.</span>";
+        stop();
+        pending.innerHTML = `${botHead()}<span class='muted'>שגיאה בשליפת התשובה. נסה שוב.</span>`;
       }
     }
 
