@@ -13,6 +13,7 @@ back to the vector-similarity order so the app still runs — but we tell you it
 from __future__ import annotations
 
 from app.config import COHERE_API_KEY, RERANK_MODEL, RERANK_N
+from app.retry import with_backoff
 
 _client = None
 
@@ -36,11 +37,13 @@ def rerank(question: str, candidates: list[dict], n: int = RERANK_N) -> list[dic
             c["reranked"] = False
         return candidates[:n]
 
-    res = _get_client().rerank(
-        model=RERANK_MODEL,
-        query=question,
-        documents=[c["text"] for c in candidates],
-        top_n=n,
+    res = with_backoff(
+        lambda: _get_client().rerank(
+            model=RERANK_MODEL,
+            query=question,
+            documents=[c["text"] for c in candidates],
+            top_n=n,
+        )
     )
     out: list[dict] = []
     for r in res.results:

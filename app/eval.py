@@ -83,8 +83,8 @@ def run() -> None:
         hit_n += int(in_n)
         mrr += (1.0 / rank) if rank else (0.0 if relevant else 1.0)
 
-        # --- generation metric ---
-        ans = answer(q)["answer"]
+        # --- generation metric (reuse the chunks we already retrieved + reranked above) ---
+        ans = answer(q, reranked=reranked)["answer"]
         ok = _judge_answer(q, ans, expected)
         correct += int(ok)
 

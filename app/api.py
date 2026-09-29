@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
+from app import memory
 from app.rag import answer
 from app.rerank import rerank
 from app.retrieval import retrieve
@@ -26,6 +27,11 @@ UI = (Path(__file__).resolve().parent.parent / "ui" / "index.html").read_text(en
 
 class Query(BaseModel):
     question: str
+    session_id: str | None = None  # pass one to make the chat multi-turn (memory-aware)
+
+
+class Session(BaseModel):
+    session_id: str
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -40,7 +46,14 @@ def health() -> dict:
 
 @app.post("/ask")
 def ask(q: Query) -> dict:
-    return answer(q.question)
+    return answer(q.question, session_id=q.session_id)
+
+
+@app.post("/reset")
+def reset(s: Session) -> dict:
+    """Start a fresh conversation — drops this session's memory (history + summary)."""
+    memory.reset(s.session_id)
+    return {"ok": True}
 
 
 @app.post("/search")

@@ -5,91 +5,153 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>זכותון — עוזר זכויות</title>
   <style>
-    :root { --bg:#f6f5f1; --card:#fff; --ink:#1b1b1a; --muted:#6b6a63; --accent:#6d3b4a; --line:#e6e4dd; }
+    :root { --bg:#f6f5f1; --card:#fff; --ink:#1b1b1a; --muted:#6b6a63; --accent:#6d3b4a; --accent-soft:#efe9ea; --line:#e6e4dd; }
     * { box-sizing: border-box; }
     body { margin:0; font-family: "Segoe UI", Rubik, Arial, sans-serif; background:var(--bg); color:var(--ink); }
-    .wrap { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
-    h1 { font-size: 28px; margin: 0 0 4px; }
-    .sub { color: var(--muted); margin: 0 0 24px; font-size: 14px; }
-    .ask { display:flex; gap:8px; }
-    input { flex:1; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:15px; background:var(--card); }
+    .wrap { max-width: 820px; margin: 0 auto; padding: 28px 20px 120px; }
+    .head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    h1 { font-size: 26px; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 8px; font-size: 14px; }
     button { padding:12px 18px; border:0; border-radius:10px; background:var(--accent); color:#fff; font-size:15px; cursor:pointer; }
-    button.ghost { background:transparent; color:var(--accent); border:1px solid var(--line); padding:6px 12px; font-size:13px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; margin-top:18px; }
-    .answer { white-space: pre-wrap; line-height:1.7; font-size:16px; }
+    button.ghost { background:transparent; color:var(--accent); border:1px solid var(--line); padding:7px 12px; font-size:13px; }
+    button.ghost.on { background:var(--accent-soft); }
+
+    .thread { display:flex; flex-direction:column; gap:14px; margin:18px 0; }
+    .msg { max-width:88%; }
+    .msg.user { align-self:flex-start; background:var(--accent); color:#fff; padding:10px 14px; border-radius:14px 14px 14px 4px; font-size:15px; line-height:1.6; }
+    .msg.bot { align-self:stretch; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+    .answer { white-space: pre-wrap; line-height:1.75; font-size:16px; }
+    .condensed { font-size:12.5px; color:var(--muted); background:var(--accent-soft); border-radius:8px; padding:6px 10px; margin-bottom:10px; }
+    .condensed b { color:var(--accent); }
     .sources { margin-top:14px; border-top:1px solid var(--line); padding-top:12px; }
     .src { font-size:13px; color:var(--muted); margin:4px 0; }
     .src a { color:var(--accent); }
-    .pill { display:inline-block; background:#efe9ea; color:var(--accent); border-radius:999px; padding:1px 8px; font-size:12px; margin-inline-start:6px; }
-    .chunk { border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:8px 0; font-size:13px; line-height:1.6; }
+    .pill { display:inline-block; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:1px 8px; font-size:12px; margin-inline-start:6px; }
+
+    .debug { display:none; margin-top:14px; border-top:1px dashed var(--line); padding-top:12px; }
+    body.show-debug .debug { display:block; }
+    .debug .cap { color:var(--muted); font-size:12.5px; margin-bottom:8px; }
+    .cols { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:640px){ .cols{ grid-template-columns:1fr; } }
+    .chunk { border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin:6px 0; font-size:12.5px; line-height:1.55; }
     .score { color:var(--accent); font-weight:600; }
     .muted { color:var(--muted); }
-    .cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    @media (max-width:640px){ .cols{ grid-template-columns:1fr; } }
-    .spinner { color:var(--muted); font-size:14px; }
+
+    .ask { position:fixed; bottom:0; inset-inline:0; background:linear-gradient(transparent, var(--bg) 22%); padding:16px 20px 20px; }
+    .ask-inner { max-width:820px; margin:0 auto; display:flex; gap:8px; }
+    input { flex:1; padding:13px 14px; border:1px solid var(--line); border-radius:10px; font-size:15px; background:var(--card); }
+    .hint { color:var(--muted); font-size:12px; text-align:center; margin-top:8px; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>זכותון · עוזר זכויות בעברית</h1>
-    <p class="sub">שאלו על זכויות עובדים ואזרחים. התשובות מבוססות אך ורק על מאגר הידע, עם ציטוט מקורות.</p>
+    <div class="head">
+      <div>
+        <h1>זכותון · עוזר זכויות בעברית</h1>
+        <p class="sub">שיחה על זכויות עובדים ואזרחים. התשובות מבוססות אך ורק על מאגר הידע, עם ציטוט מקורות — ואפשר לשאול שאלות המשך.</p>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="ghost" id="dbgBtn" onclick="toggleDebug()">🔍 מצב Evaluation</button>
+      <button class="ghost" onclick="newChat()">✨ שיחה חדשה</button>
+    </div>
 
-    <div class="ask">
-      <input id="q" placeholder="למשל: כמה ימי הודעה מוקדמת מגיעים לעובד חודשי ותיק?" />
+    <div class="thread" id="thread"></div>
+  </div>
+
+  <div class="ask">
+    <div class="ask-inner">
+      <input id="q" placeholder="למשל: פוטרתי אחרי 4 שנים — כמה ימי הודעה מוקדמת מגיעים לי?" />
       <button onclick="ask()">שאל</button>
     </div>
-    <div style="margin-top:10px">
-      <button class="ghost" onclick="toggleDebug()">🔍 מצב Evaluation (הצגת שליפה)</button>
-    </div>
-
-    <div id="out"></div>
-    <div id="debug"></div>
+    <div class="hint">טיפ: שאל שאלה, ואז שאלת המשך כמו "וכמה פיצויים?" — הזיכרון ישלים את ההקשר.</div>
   </div>
 
   <script>
-    let debugOn = false;
     const el = (id) => document.getElementById(id);
+    const thread = el("thread");
+    let sessionId = newId();
 
-    function toggleDebug() { debugOn = !debugOn; el("debug").innerHTML = debugOn ? "<p class='sub'>מצב Evaluation פעיל — כל שאלה תציג גם את הצ'אנקים שנשלפו והדירוג.</p>" : ""; }
+    function newId() {
+      try { return crypto.randomUUID(); } catch (e) { return "s-" + Date.now() + "-" + Math.random().toString(16).slice(2); }
+    }
+    function esc(s){ return (s||"").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+    function toggleDebug() {
+      document.body.classList.toggle("show-debug");
+      el("dbgBtn").classList.toggle("on", document.body.classList.contains("show-debug"));
+    }
+
+    async function newChat() {
+      try { await fetch("/reset", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({session_id: sessionId}) }); } catch(e){}
+      sessionId = newId();
+      thread.innerHTML = "";
+      el("q").focus();
+    }
+
+    function addUser(text) {
+      const d = document.createElement("div");
+      d.className = "msg user";
+      d.textContent = text;
+      thread.appendChild(d);
+      d.scrollIntoView({behavior:"smooth", block:"end"});
+    }
+
+    function addBot(html) {
+      const d = document.createElement("div");
+      d.className = "msg bot";
+      d.innerHTML = html;
+      thread.appendChild(d);
+      d.scrollIntoView({behavior:"smooth", block:"end"});
+      return d;
+    }
+
+    function chunks(title, items, key) {
+      let h = `<div><b>${title}</b>`;
+      (items||[]).forEach((c,i) => h += `<div class='chunk'><span class='muted'>${i+1}. ${esc(c.title)}</span> · <span class='score'>${c[key]}</span><br>${esc((c.text||"").slice(0,150))}…</div>`);
+      return h + "</div>";
+    }
+
+    function render(data, typedQuestion) {
+      let h = "";
+      // Transparency: show the standalone query the memory produced, when it differs from what was typed.
+      if (data.search_query && data.search_query.trim() !== typedQuestion.trim()) {
+        h += `<div class='condensed'>🔎 <b>חיפשתי לפי:</b> ${esc(data.search_query)} <span class='muted'>(נוסח מחדש מההקשר)</span></div>`;
+      }
+      h += `<div class='answer'>${esc(data.answer)}</div>`;
+      if (data.sources && data.sources.length) {
+        h += "<div class='sources'><b>מקורות:</b>";
+        for (const s of data.sources) {
+          const link = s.source_url ? `<a href='${esc(s.source_url)}' target='_blank'>${esc(s.title)}</a>` : esc(s.title);
+          const tag = s.reranked ? `<span class='pill'>reranked ${s.rerank_score}</span>` : `<span class='pill'>score ${s.rerank_score}</span>`;
+          h += `<div class='src'>[${s.n}] ${link} ${tag}</div>`;
+        }
+        h += "</div>";
+      }
+      const d = data.debug || {};
+      h += `<div class='debug'><div class='cap'>מצב Evaluation — כך רואים אם תשובה שגויה נובעת מ<b>שליפה</b> או מ<b>ניסוח</b>:</div>`
+         + `<div class='cols'>${chunks("Retrieval (top-K)", d.retrieved, "score")}${chunks("After rerank (top-N)", d.reranked, "rerank_score")}</div></div>`;
+      return h;
+    }
 
     async function ask() {
       const q = el("q").value.trim();
       if (!q) return;
-      el("out").innerHTML = "<div class='card spinner'>מחפש במאגר…</div>";
-      el("debug").innerHTML = debugOn ? "<div class='card spinner'>שולף…</div>" : "";
-
-      const res = await fetch("/ask", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({question:q}) });
-      const data = await res.json();
-
-      let html = `<div class='card'><div class='answer'>${escape(data.answer)}</div>`;
-      if (data.sources && data.sources.length) {
-        html += "<div class='sources'><b>מקורות:</b>";
-        for (const s of data.sources) {
-          const link = s.source_url ? `<a href='${s.source_url}' target='_blank'>${escape(s.title)}</a>` : escape(s.title);
-          const tag = s.reranked ? `<span class='pill'>reranked ${s.rerank_score}</span>` : `<span class='pill'>score ${s.rerank_score}</span>`;
-          html += `<div class='src'>[${s.n}] ${link} ${tag}</div>`;
-        }
-        html += "</div>";
+      el("q").value = "";
+      addUser(q);
+      const pending = addBot("<span class='muted'>מחפש במאגר…</span>");
+      try {
+        const res = await fetch("/ask", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({question:q, session_id: sessionId}) });
+        const data = await res.json();
+        pending.innerHTML = render(data, q);
+        pending.scrollIntoView({behavior:"smooth", block:"end"});
+      } catch (e) {
+        pending.innerHTML = "<span class='muted'>שגיאה בשליפת התשובה. נסה שוב.</span>";
       }
-      html += "</div>";
-      el("out").innerHTML = html;
-
-      if (debugOn) showDebug(q);
     }
 
-    async function showDebug(q) {
-      const res = await fetch("/search", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({question:q}) });
-      const d = await res.json();
-      const col = (title, items, key) => {
-        let h = `<div><b>${title}</b>`;
-        items.forEach((c,i) => h += `<div class='chunk'><span class='muted'>${i+1}. ${escape(c.title)}</span> · <span class='score'>${c[key]}</span><br>${escape(c.text.slice(0,160))}…</div>`);
-        return h + "</div>";
-      };
-      el("debug").innerHTML = `<div class='card'><p class='sub'>מצב Evaluation — כך רואים אם תשובה שגויה נובעת מ<b>שליפה</b> או מ<b>ניסוח</b>:</p><div class='cols'>${col("Retrieval (top-K)", d.retrieved, "score")}${col("After rerank (top-N)", d.reranked, "rerank_score")}</div></div>`;
-    }
-
-    function escape(s){ return (s||"").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
     el("q").addEventListener("keydown", e => { if (e.key === "Enter") ask(); });
+    el("q").focus();
   </script>
 </body>
 </html>

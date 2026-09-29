@@ -18,7 +18,7 @@ for _stream in (sys.stdout, sys.stderr):
 ROOT = Path(__file__).resolve().parent.parent
 CORPUS_DIR = ROOT / "data" / "corpus"
 EVAL_FILE = ROOT / "data" / "eval" / "golden.jsonl"
-CHROMA_DIR = ROOT / ".chroma"  # on-disk vector store
+STORE_DIR = ROOT / ".qdrant"  # on-disk vector store (Qdrant local mode)
 COLLECTION = "zchut"
 
 # --- Chunking ---
@@ -32,11 +32,15 @@ RETRIEVE_K = 12   # wide net from the vector DB (recall)
 RERANK_N = 4      # what actually reaches the model after reranking (precision)
 
 # --- Models ---
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "embed-multilingual-v3.0")
 ANSWER_MODEL = os.getenv("ANSWER_MODEL", "claude-sonnet-5")
 RERANK_MODEL = os.getenv("RERANK_MODEL", "rerank-multilingual-v3.0")
+# Cheap/fast model for the auxiliary LLM steps (query condensing + history summarization).
+# Routing simple sub-tasks to a small model keeps latency and cost down; the strong model
+# is reserved for the actual grounded answer.
+CONDENSE_MODEL = os.getenv("CONDENSE_MODEL", "claude-haiku-4-5")
 
 # --- Keys ---
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+# Cohere powers BOTH embeddings and reranking; Claude writes the answer. No OpenAI needed.
 COHERE_API_KEY = os.getenv("COHERE_API_KEY", "")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")

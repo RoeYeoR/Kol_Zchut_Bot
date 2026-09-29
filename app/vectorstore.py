@@ -1,45 +1,72 @@
-"""Vector store: persist chunk vectors + metadata and do approximate-nearest-neighbour search.
-
-We use Chroma (on-disk, in-process — zero infra) so the POC runs with a single `pip install`.
-Every vector stores its chunk text and metadata alongside it, so a search result already
-carries everything we need to cite the source.
-
-Swap point: for scale + query-time metadata filtering, move to pgvector / Qdrant / Pinecone.
-The interface below (upsert / query) is deliberately small so the backend is replaceable.
+"""Vector store: Qdrant in local (embedded) mode — a real vector DB with no server and
+no C++ compiler needed (unlike Chroma's hnswlib). Each chunk's vector is stored with its
+text + metadata as the payload, so a search result already carries everything needed to
+cite the source. Swap point: point QdrantClient at a running Qdrant / pgvector for scale.
 """
 from __future__ import annotations
 
-import chromadb
+import atexit
 
-from app.config import CHROMA_DIR, COLLECTION
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, PointStruct, VectorParams
+
+from app.config import COLLECTION, STORE_DIR
+
+_client: QdrantClient | None = None
 
 
-def _collection():
-    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    # cosine distance is the right metric for text embeddings
-    return client.get_or_create_collection(COLLECTION, metadata={"hnsw:space": "cosine"})
+def _c() -> QdrantClient:
+    global _client
+    if _client is None:
+        _client = QdrantClient(path=str(STORE_DIR))
+    return _client
+
+
+@atexit.register
+def _close() -> None:
+    # Close the local client while the interpreter is still alive. Otherwise Qdrant's
+    # own __del__ runs during shutdown (when sys.meta_path is gone) and prints a noisy,
+    # harmless "Python is likely shutting down" ImportError traceback.
+    global _client
+    if _client is not None:
+        try:
+            _client.close()
+        except Exception:
+            pass
+        _client = None
 
 
 def reset() -> None:
-    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    try:
-        client.delete_collection(COLLECTION)
-    except Exception:
-        pass
+    c = _c()
+    if c.collection_exists(COLLECTION):
+        c.delete_collection(COLLECTION)
 
 
 def upsert(ids: list[str], texts: list[str], embeddings: list[list[float]], metadatas: list[dict]) -> None:
-    _collection().upsert(ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)
+    c = _c()
+    if not c.collection_exists(COLLECTION):
+        c.create_collection(
+            COLLECTION,
+            vectors_config=VectorParams(size=len(embeddings[0]), distance=Distance.COSINE),
+        )
+    points = [
+        PointStruct(id=i, vector=emb, payload={**meta, "text": text, "chunk_id": cid})
+        for i, (cid, text, emb, meta) in enumerate(zip(ids, texts, embeddings, metadatas))
+    ]
+    c.upsert(collection_name=COLLECTION, points=points)
 
 
 def query(embedding: list[float], k: int) -> list[dict]:
-    """Return the k nearest chunks as dicts with text, metadata, and a 0..1 similarity score."""
-    res = _collection().query(query_embeddings=[embedding], n_results=k)
+    c = _c()
+    res = c.query_points(collection_name=COLLECTION, query=embedding, limit=k, with_payload=True)
     out: list[dict] = []
-    for text, meta, dist in zip(res["documents"][0], res["metadatas"][0], res["distances"][0]):
-        out.append({"text": text, "metadata": meta, "score": 1.0 - float(dist)})  # cosine dist -> similarity
+    for p in res.points:
+        payload = dict(p.payload or {})
+        text = payload.pop("text", "")
+        out.append({"text": text, "metadata": payload, "score": float(p.score)})
     return out
 
 
 def count() -> int:
-    return _collection().count()
+    c = _c()
+    return c.count(collection_name=COLLECTION).count if c.collection_exists(COLLECTION) else 0
