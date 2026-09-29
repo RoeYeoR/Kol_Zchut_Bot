@@ -1,5 +1,11 @@
 # זכותון — Hebrew Rights RAG Assistant
 
+<p align="center">
+  <img src="docs/demo.gif" alt="זכותון — conversational RAG demo" width="360" />
+</p>
+
+<p align="center"><i>A grounded, cited answer → a bare follow-up ("וכמה פיצויים?") is condensed against the conversation → Evaluation mode reveals the retrieval vs. rerank scores.</i></p>
+
 A retrieval-augmented (RAG) assistant that answers questions in **Hebrew** about citizens'
 rights and benefits, grounded in a knowledge base (modeled on כל-זכות / Kol-Zchut). Every
 answer is built **only** from retrieved sources, with **citations**, and says *"לא נמצאה
@@ -12,16 +18,6 @@ generation → evaluation → API → UI.** It is intentionally in **Python (Fas
 > Why Hebrew? Most RAG demos are English. Hebrew RAG is genuinely harder (embeddings,
 > chunking, and reranking all degrade on Hebrew), so doing it well is a real signal — and
 > it's exactly what an Israeli enterprise assistant needs.
-
----
-
-## Demo
-
-![זכותון — conversational RAG demo](docs/demo.gif)
-
-*Ask a question → a grounded, cited answer. Ask a bare follow-up ("וכמה פיצויים?") → the
-assistant condenses it against the conversation into a standalone query and shows exactly
-what it searched for. Toggle **Evaluation mode** to see the retrieval vs. rerank scores.*
 
 ---
 
