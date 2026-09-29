@@ -15,6 +15,16 @@ generation → evaluation → API → UI.** It is intentionally in **Python (Fas
 
 ---
 
+## Demo
+
+![זכותון — conversational RAG demo](docs/demo.gif)
+
+*Ask a question → a grounded, cited answer. Ask a bare follow-up ("וכמה פיצויים?") → the
+assistant condenses it against the conversation into a standalone query and shows exactly
+what it searched for. Toggle **Evaluation mode** to see the retrieval vs. rerank scores.*
+
+---
+
 ## Architecture (this is also the interview cheat-sheet)
 
 ```
